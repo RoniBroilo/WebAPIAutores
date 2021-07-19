@@ -13,7 +13,8 @@ namespace WebAPIAutores{
         {
         }
 
-        public DbSet<Autor> Autores { get; set; }
+        public DbSet<Autor> Autores { get; set; }//Para hacer una consulta particular a los autores
+        public DbSet<Libro> Libros { get; set; }//Para hacer una consulta particular a los libros
     }
 
 }

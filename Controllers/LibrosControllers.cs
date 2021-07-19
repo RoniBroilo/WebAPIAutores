@@ -8,35 +8,46 @@ using Microsoft.EntityFrameworkCore;
 
 namespace WebAPIAutores.Controllers{
     [ApiController]/*ATRIBUTO que me permitira hacer validaciones automaticas respecto a la data recibida en nuestro controlador*/
-    [Route("api/autores")] /*Ruta del controlador*/
-    public class AutoresController: ControllerBase{
+    [Route("api/libros")] /*Ruta del controlador*/
+    public class LibrosController: ControllerBase{
 
         private readonly ApplicationDbContext context;
 
 
         //CONSTRUCTOR
-        public AutoresController(ApplicationDbContext context){
+        public LibrosController(ApplicationDbContext context){
             
             this.context = context;
         }
 
 
-        [HttpGet]   
-        public async Task<ActionResult<List<Autor>>> Get(){
-            //Retorno listado de Autores
+        [HttpGet("{id:int}")]   
+        public async Task<ActionResult<Libro>> Get(int id){
+            //Retorno un libro en particular
             
-            return await context.Autores.ToListAsync();
+            return await context.Libros.Include(x => x.Autor).FirstOrDefaultAsync(x => x.Id==id); //firstordefaultasync trae el primer registro que coincida con la condicion entre parentesis
+            //Libros porque en el dbcontext pusimos libros
+            //Libros.Include(x => x.Autor) realizo esta acción para incluir el Autor, porque si no solamente trae el id y no el objeto autor
         }
         
         [HttpPost]
-        public async Task<ActionResult> Post(Autor autor){
-          //Agregar Autor
-            context.Add(autor);//agregamos en la bd un nuevo autor, pero aun no se ha creado en la bd de datos, debo guardar los cambios
+        public async Task<ActionResult> Post(Libro libro){
+          //Agregar Libro   
+          //Primero me fijo si existe un autor en la base de datos que tenga el id que trae el libro
+            var existeAutor = await context.Autores.AnyAsync(x => x.Id == libro.IdAutor);
+            
+            if(!existeAutor){
+
+                return BadRequest($"No existe el autor de Id: {libro.IdAutor}"); // puede ser tambien ("No existe el autor de Id: "+libro.IdAutor);
+
+            }
+        
+            context.Add(libro);//agregamos en la bd un nuevo libro, pero aun no se ha creado en la bd de datos, debo guardar los cambios
             await context.SaveChangesAsync(); //acá guardo los cambios de manera asincrona
             return Ok();//retorno algo (ahora ok, en el futuro otra cosa)
         }
 
-
+/*
         [HttpPut("{id:int}")]//  api/autores/1 (1 como ejemplo)
         //Modificar Autor
         public async Task<ActionResult> Put(Autor autor, int id){
@@ -70,7 +81,7 @@ namespace WebAPIAutores.Controllers{
 
 
         }
-
+*/
         
     }
 
